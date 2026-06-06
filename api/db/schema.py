@@ -32,8 +32,7 @@ async def create_tables(conn: psycopg.AsyncConnection) -> None:
             content     TEXT NOT NULL,
             metadata    JSONB DEFAULT '{{}}'::jsonb,
             embedding   vector({dims}),
-            created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-            expires_at  TIMESTAMPTZ
+            created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
         )
     """)
 
@@ -43,8 +42,7 @@ async def create_tables(conn: psycopg.AsyncConnection) -> None:
             topic           TEXT,
             centroid        vector({dims}),
             embedding_dims  INTEGER NOT NULL DEFAULT {dims},
-            created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-            expires_at      TIMESTAMPTZ
+            created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
         )
     """)
 
@@ -73,14 +71,13 @@ async def insert_chunk(
     content: str,
     embedding: list[float],
     metadata: dict | None = None,
-    expires_at=None,
 ) -> None:
     await conn.execute(
         """
-        INSERT INTO session_chunks (session_id, content, embedding, metadata, expires_at)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO session_chunks (session_id, content, embedding, metadata)
+        VALUES (%s, %s, %s, %s)
         """,
-        (session_id, content, embedding, metadata or {}, expires_at),
+        (session_id, content, embedding, metadata or {}),
     )
 
 
@@ -116,18 +113,17 @@ async def upsert_session_meta(
     session_id: str,
     topic: str,
     centroid: list[float],
-    expires_at=None,
 ) -> None:
     settings = get_settings()
     await conn.execute(
         """
-        INSERT INTO session_meta (session_id, topic, centroid, embedding_dims, expires_at)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO session_meta (session_id, topic, centroid, embedding_dims)
+        VALUES (%s, %s, %s, %s)
         ON CONFLICT (session_id) DO UPDATE
             SET centroid = EXCLUDED.centroid,
                 topic    = EXCLUDED.topic
         """,
-        (session_id, topic, centroid, settings.embedding_dimensions, expires_at),
+        (session_id, topic, centroid, settings.embedding_dimensions),
     )
 
 
