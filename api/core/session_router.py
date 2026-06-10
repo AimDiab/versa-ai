@@ -37,9 +37,10 @@ class SessionMeta:
 @dataclass
 class RouteDecision:
     path: RoutePath
-    session: SessionMeta | None = None   # None on cold path
-    guard: GuardResult | None = None     # set on warm + deflect
+    session: SessionMeta | None = None        # None on cold path
+    guard: GuardResult | None = None          # set on warm + deflect
     query: str = ""
+    query_embedding: list[float] = field(default_factory=list)  # carried for warm retrieval
 
     @property
     def is_cold(self) -> bool:
@@ -101,6 +102,7 @@ class SessionRouter:
             return RouteDecision(
                 path=RoutePath.COLD,
                 query=query,
+                query_embedding=query_embedding,
             )
 
         session = SessionMeta(
@@ -122,4 +124,5 @@ class SessionRouter:
             session=session,
             guard=guard_result,
             query=query,
+            query_embedding=query_embedding,
         )
