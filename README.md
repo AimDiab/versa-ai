@@ -65,14 +65,14 @@ A Next.js 15 chat UI that streams responses from the FastAPI backend via SSE.
 ```bash
 # Clone and enter the repo
 git clone https://github.com/your-username/versa-ai.git
-cd versa-ai
+cd versa-ai/backend
 
 # (Optional) create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install -r api/requirements.txt
+pip install -r requirements.txt
 
 # Configure environment
 cp api/.env.example api/.env
@@ -105,10 +105,15 @@ npm test      # Jest unit tests
 
 ```
 versa-ai/
-├── api/
-│   ├── core/          # Configuration and session logic
-│   ├── db/            # Database client and schema
-│   └── providers/     # LLM provider adapters
+├── backend/
+│   ├── api/
+│   │   ├── core/          # Configuration and session logic
+│   │   ├── db/            # Database client and schema
+│   │   └── providers/     # LLM provider adapters
+│   ├── tests/             # Backend test suite
+│   ├── requirements.txt
+│   ├── requirements-dev.txt
+│   └── pytest.ini
 ├── web/
 │   ├── src/
 │   │   ├── app/           # Next.js App Router (layout, page, globals.css)
@@ -118,9 +123,6 @@ versa-ai/
 │   │   └── types/         # SSE event and message types
 │   ├── next.config.ts     # API rewrite (proxies /api/* to FastAPI)
 │   └── jest.config.ts
-├── tests/             # Backend test suite
-├── pytest.ini
-├── requirements-dev.txt
 └── README.md
 ```
 
