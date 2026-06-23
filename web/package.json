@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@next/jest": "^15.0.0",
+    "@testing-library/react": "^16.0.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
