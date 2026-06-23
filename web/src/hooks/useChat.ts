@@ -8,8 +8,16 @@
  *   - Expose a `newSession()` reset so the deflect card can offer a fresh start
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Message, SSEEvent } from "../types/sse";
+
+interface UseChatReturn {
+  messages: Message[];
+  isStreaming: boolean;
+  send: (query: string) => Promise<void>;
+  newSession: () => void;
+  sessionId: string;
+}
 import { apiUrl } from "../lib/api";
 
 function generateSessionId(): string {
@@ -45,15 +53,16 @@ async function* parseSSE(
   }
 }
 
-export function useChat() {
+export function useChat(): UseChatReturn {
   const [sessionId, setSessionId] = useState<string>(generateSessionId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const isStreamingRef = useRef(false);
 
   const send = useCallback(
     async (query: string) => {
-      if (isStreaming) return;
+      if (isStreamingRef.current) return;
 
       // Append the user message immediately
       setMessages((prev) => [...prev, { role: "user", text: query }]);
@@ -64,6 +73,7 @@ export function useChat() {
         { role: "assistant", text: "", streaming: true },
       ]);
 
+      isStreamingRef.current = true;
       setIsStreaming(true);
       abortRef.current = new AbortController();
 
@@ -143,11 +153,14 @@ export function useChat() {
           });
         }
       } finally {
+        isStreamingRef.current = false;
         setIsStreaming(false);
       }
     },
-    [isStreaming, sessionId]
+    [sessionId]
   );
+
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
 
   const newSession = useCallback(() => {
     abortRef.current?.abort();

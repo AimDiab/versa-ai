@@ -209,6 +209,23 @@ describe("useChat", () => {
     expect(result.current.sessionId).not.toBe(originalSessionId);
   });
 
+  it("aborts the in-flight request when the component unmounts", async () => {
+    const abortSpy = jest.fn();
+    const abortController = { abort: abortSpy, signal: new AbortController().signal };
+    jest.spyOn(global, "AbortController" as never).mockImplementation(() => abortController as never);
+    global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
+
+    const { result, unmount } = renderHook(() => useChat());
+
+    act(() => {
+      result.current.send("hello");
+    });
+
+    unmount();
+
+    expect(abortSpy).toHaveBeenCalled();
+  });
+
   it("sends the session_id and query in the POST body", async () => {
     mockFetch([{ type: "done" }]);
 
